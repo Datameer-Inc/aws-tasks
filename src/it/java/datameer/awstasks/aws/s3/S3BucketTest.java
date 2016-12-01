@@ -15,7 +15,7 @@
  */
 package datameer.awstasks.aws.s3;
 
-import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Assertions.assertThat;
 
 import static org.junit.Assert.*;
 
@@ -26,14 +26,13 @@ import org.junit.Test;
 
 import awstasks.com.amazonaws.services.s3.AmazonS3;
 import awstasks.com.amazonaws.services.s3.model.S3ObjectSummary;
-
 import datameer.awstasks.aws.AbstractAwsIntegrationTest;
 import datameer.awstasks.util.Retry;
 import datameer.awstasks.util.S3Util;
 
 public class S3BucketTest extends AbstractAwsIntegrationTest {
 
-    public static final String AWS_TEST_BUCKET = "aws.test.bucket";
+    public static final String AWS_TEST_BUCKET = "dm.aws-tasks.test.bucket";
 
     @SuppressWarnings("unchecked")
     // retry necessary because of 'eventual consistency' (see

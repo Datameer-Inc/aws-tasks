@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 
 import awstasks.com.amazonaws.services.ec2.AmazonEC2;
+import awstasks.com.amazonaws.services.ec2.model.CreateTagsRequest;
 import awstasks.com.amazonaws.services.ec2.model.Instance;
 import awstasks.com.amazonaws.services.ec2.model.InstanceStateName;
 import awstasks.com.amazonaws.services.ec2.model.IpPermission;
@@ -32,9 +33,9 @@ import awstasks.com.amazonaws.services.ec2.model.RunInstancesRequest;
 import awstasks.com.amazonaws.services.ec2.model.StartInstancesRequest;
 import awstasks.com.amazonaws.services.ec2.model.StopInstancesRequest;
 import awstasks.com.amazonaws.services.ec2.model.StopInstancesResult;
+import awstasks.com.amazonaws.services.ec2.model.Tag;
 import awstasks.com.amazonaws.services.ec2.model.TerminateInstancesRequest;
 import awstasks.com.amazonaws.services.ec2.model.TerminateInstancesResult;
-
 import datameer.awstasks.aws.ec2.ssh.SshClient;
 import datameer.awstasks.aws.ec2.ssh.SshClientImpl;
 import datameer.awstasks.ssh.JschRunner;
@@ -97,6 +98,14 @@ public class InstanceGroupImpl implements InstanceGroup {
         if (timeUnit != null) {
             waitUntilServerUp(timeUnit, time);
             LOG.info(String.format("launched %d instances: %s / %s", instanceIds.size(), instanceIds, Ec2Util.toPublicDns(_instances)));
+        }
+        // Add currentUser to CreatedBy tag.
+        String _currentUser = System.getProperty("user.name");
+        for (Instance instance : _instances) {
+            CreateTagsRequest createTagsRequest = new CreateTagsRequest();
+            createTagsRequest.withResources(instance.getInstanceId()) //
+                    .withTags(new Tag("CreatedBy", _currentUser));
+            _ec2.createTags(createTagsRequest);
         }
         return Ec2Util.reloadReservation(_ec2, reservation);
     }
@@ -180,12 +189,12 @@ public class InstanceGroupImpl implements InstanceGroup {
         checkSshConnection(username, instanceDns, privateKey, null);
         return new SshClientImpl(username, privateKey, instanceDns);
     }
-    
+
     private List<String> checkSshPreconditions(boolean usePublicDNS) {
         checkEc2Association(true);
         updateInstanceDescriptions();
         checkInstanceMode(_instances, InstanceStateName.Running);
-        List<String> instanceDns = usePublicDNS ? Ec2Util.toPublicDns(_instances):Ec2Util.toPrivateDns(_instances);
+        List<String> instanceDns = usePublicDNS ? Ec2Util.toPublicDns(_instances) : Ec2Util.toPrivateDns(_instances);
         checkSshPermissions();
         return instanceDns;
     }
@@ -194,7 +203,7 @@ public class InstanceGroupImpl implements InstanceGroup {
     public SshClient createSshClient(String username, String password) {
         return createSshClient(username, password, true);
     }
-    
+
     @Override
     public SshClient createSshClient(String username, String password, boolean usePublicDNS) {
         List<String> instanceDns = checkSshPreconditions(usePublicDNS);

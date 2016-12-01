@@ -15,7 +15,7 @@
  */
 package datameer.awstasks.aws.emr;
 
-import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Assertions.assertThat;
 
 import static org.junit.Assert.*;
 
@@ -29,12 +29,12 @@ import java.util.Set;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import awstasks.com.amazonaws.services.s3.AmazonS3;
 import awstasks.com.amazonaws.services.s3.model.Bucket;
 import awstasks.com.amazonaws.services.s3.model.S3ObjectSummary;
-
 import datameer.awstasks.aws.AbstractAwsIntegrationTest;
 import datameer.awstasks.aws.emr.EmrCluster.ClusterState;
 import datameer.awstasks.aws.emr.EmrCluster.StepFuture;
@@ -43,6 +43,7 @@ import datameer.awstasks.aws.s3.S3BucketTest;
 import datameer.awstasks.util.IoUtil;
 import datameer.awstasks.util.S3Util;
 
+@Ignore("No longer running since the developers do not have the rights to do this anyway.")
 public class EmrClusterTest extends AbstractAwsIntegrationTest {
 
     private Bucket _s3Bucket;

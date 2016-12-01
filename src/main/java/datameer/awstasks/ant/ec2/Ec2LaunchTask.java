@@ -33,7 +33,6 @@ import awstasks.com.amazonaws.services.ec2.model.IpPermission;
 import awstasks.com.amazonaws.services.ec2.model.Placement;
 import awstasks.com.amazonaws.services.ec2.model.RunInstancesRequest;
 import awstasks.com.amazonaws.services.ec2.model.Tag;
-
 import datameer.awstasks.aws.ec2.GroupPermission;
 import datameer.awstasks.aws.ec2.InstanceGroup;
 import datameer.awstasks.aws.ec2.InstanceGroupImpl;

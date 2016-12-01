@@ -24,13 +24,13 @@ import awstasks.com.amazonaws.services.ec2.model.DescribeVolumesResult;
 import awstasks.com.amazonaws.services.ec2.model.Filter;
 import awstasks.com.amazonaws.services.ec2.model.RunInstancesRequest;
 import awstasks.com.amazonaws.services.ec2.model.Volume;
-
 import datameer.awstasks.aws.AbstractAwsIntegrationTest;
 import datameer.com.google.common.base.Preconditions;
 
 public abstract class AbstractEc2IntegrationTest extends AbstractAwsIntegrationTest {
 
     public static final String TEST_SECURITY_GROUP = "aws-tasks.test";
+    public static final String TEST_REGION = "us_east_1";
     public static final String TEST_EBS = "aws-test-ebs";
     public static final String TEST_AMI = "ami-205fba49";
     public static final String TEST_AMI_WITH_EBS = "ami-84db39ed";

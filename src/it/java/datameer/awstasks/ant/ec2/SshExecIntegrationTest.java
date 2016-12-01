@@ -24,7 +24,6 @@ import org.apache.tools.ant.Project;
 import org.junit.Test;
 
 import awstasks.com.amazonaws.services.ec2.model.Instance;
-
 import datameer.awstasks.ant.ec2.model.SshExec;
 import datameer.awstasks.aws.ec2.AbstractEc2IntegrationInteractionTest;
 import datameer.com.google.common.base.Function;
@@ -45,6 +44,7 @@ public class SshExecIntegrationTest extends AbstractEc2IntegrationInteractionTes
 
         Ec2SshTask ec2SshTask = new Ec2SshTask();
         ec2SshTask.setProject(project);
+        ec2SshTask.setRegion(TEST_REGION);
         ec2SshTask.setAccessKey(_ec2Conf.getAccessKey());
         ec2SshTask.setAccessSecret(_ec2Conf.getAccessSecret());
         ec2SshTask.setGroupName(TEST_SECURITY_GROUP);

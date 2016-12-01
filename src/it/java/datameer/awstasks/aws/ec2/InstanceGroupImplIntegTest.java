@@ -29,8 +29,8 @@ import awstasks.com.amazonaws.services.ec2.model.AttachVolumeRequest;
 import awstasks.com.amazonaws.services.ec2.model.Instance;
 import awstasks.com.amazonaws.services.ec2.model.InstanceStateName;
 import awstasks.com.amazonaws.services.ec2.model.Reservation;
+import awstasks.com.amazonaws.services.ec2.model.Tag;
 import awstasks.com.amazonaws.services.ec2.model.Volume;
-
 import datameer.awstasks.util.Ec2Util;
 
 public class InstanceGroupImplIntegTest extends AbstractEc2IntegrationTest {
@@ -40,37 +40,43 @@ public class InstanceGroupImplIntegTest extends AbstractEc2IntegrationTest {
         AmazonEC2 ec2 = _ec2Conf.createEc2();
         InstanceGroup instanceGroup = new InstanceGroupImpl(ec2);
 
-        // startup
-        int instanceCount = 1;
-        Reservation reservation = instanceGroup.launch(createLaunchConfiguration(instanceCount));
-        assertEquals(instanceCount, instanceGroup.instanceCount());
-        assertTrue(instanceGroup.isAssociated());
-        assertEquals(instanceCount, reservation.getInstances().size());
-        checkInstanceMode(reservation.getInstances(), InstanceStateName.Pending);
-
-        // shutdown
-        instanceGroup.terminate();
-        Thread.sleep(500);
-        checkInstanceMode(Ec2Util.reloadInstanceDescriptions(ec2, reservation.getInstances()), InstanceStateName.ShuttingDown, InstanceStateName.Terminated);
-        assertFalse(instanceGroup.isAssociated());
+        Reservation reservation = null;
+        try {
+            // startup
+            int instanceCount = 1;
+            reservation = instanceGroup.launch(createLaunchConfiguration(instanceCount));
+            assertEquals(instanceCount, instanceGroup.instanceCount());
+            assertTrue(instanceGroup.isAssociated());
+            assertEquals(instanceCount, reservation.getInstances().size());
+            checkInstanceMode(reservation.getInstances(), InstanceStateName.Pending);
+            checkCreatedByTag(reservation.getInstances());
+        } finally {
+            // shutdown
+            instanceGroup.terminate();
+            Thread.sleep(500);
+            checkInstanceMode(Ec2Util.reloadInstanceDescriptions(ec2, reservation.getInstances()), InstanceStateName.ShuttingDown, InstanceStateName.Terminated);
+            assertFalse(instanceGroup.isAssociated());
+        }
     }
 
     @Test
     public void testLaunchWithWaitOnRunning() throws Exception {
         AmazonEC2 ec2 = _ec2Conf.createEc2();
         InstanceGroup instanceGroup = new InstanceGroupImpl(ec2);
-
-        // startup
-        Reservation reservation = instanceGroup.launch(createLaunchConfiguration(1), TimeUnit.MINUTES, 10);
-        assertTrue(instanceGroup.isAssociated());
-        assertEquals(1, reservation.getInstances().size());
-        checkInstanceMode(reservation.getInstances(), InstanceStateName.Running);
-
-        // shutdown
-        instanceGroup.terminate();
-        Thread.sleep(1000);
-        checkInstanceMode(Ec2Util.reloadInstanceDescriptions(ec2, reservation.getInstances()), InstanceStateName.ShuttingDown, InstanceStateName.Terminated);
-        assertFalse(instanceGroup.isAssociated());
+        Reservation reservation = null;
+        try {
+            // startup
+            reservation = instanceGroup.launch(createLaunchConfiguration(1), TimeUnit.MINUTES, 10);
+            assertTrue(instanceGroup.isAssociated());
+            assertEquals(1, reservation.getInstances().size());
+            checkInstanceMode(reservation.getInstances(), InstanceStateName.Running);
+        } finally {
+            // shutdown
+            instanceGroup.terminate();
+            Thread.sleep(1000);
+            checkInstanceMode(Ec2Util.reloadInstanceDescriptions(ec2, reservation.getInstances()), InstanceStateName.ShuttingDown, InstanceStateName.Terminated);
+            assertFalse(instanceGroup.isAssociated());
+        }
     }
 
     @Test
@@ -78,20 +84,21 @@ public class InstanceGroupImplIntegTest extends AbstractEc2IntegrationTest {
         AmazonEC2 ec2 = _ec2Conf.createEc2();
         InstanceGroup instanceGroup1 = new InstanceGroupImpl(ec2);
         InstanceGroup instanceGroup2 = new InstanceGroupImpl(ec2);
-
-        // startup
-        Reservation reservation = instanceGroup1.launch(createLaunchConfiguration(1), TimeUnit.MINUTES, 10);
-        assertTrue(instanceGroup1.isAssociated());
-
-        // connect
-        instanceGroup2.connectTo(reservation);
-        assertTrue(instanceGroup2.isAssociated());
-
-        // shutdown
-        instanceGroup2.terminate();
-        Thread.sleep(500);
-        checkInstanceMode(Ec2Util.reloadInstanceDescriptions(ec2, reservation.getInstances()), InstanceStateName.ShuttingDown, InstanceStateName.Terminated);
-        assertFalse(instanceGroup2.isAssociated());
+        Reservation reservation = null;
+        try {
+            // startup
+            reservation = instanceGroup1.launch(createLaunchConfiguration(1), TimeUnit.MINUTES, 10);
+            assertTrue(instanceGroup1.isAssociated());
+            // connect
+            instanceGroup2.connectTo(reservation);
+            assertTrue(instanceGroup2.isAssociated());
+        } finally {
+            // shutdown
+            instanceGroup2.terminate();
+            Thread.sleep(500);
+            checkInstanceMode(Ec2Util.reloadInstanceDescriptions(ec2, reservation.getInstances()), InstanceStateName.ShuttingDown, InstanceStateName.Terminated);
+            assertFalse(instanceGroup2.isAssociated());
+        }
     }
 
     @Test
@@ -99,20 +106,21 @@ public class InstanceGroupImplIntegTest extends AbstractEc2IntegrationTest {
         AmazonEC2 ec2 = _ec2Conf.createEc2();
         InstanceGroup instanceGroup1 = new InstanceGroupImpl(ec2);
         InstanceGroup instanceGroup2 = new InstanceGroupImpl(ec2);
-
-        // startup
-        Reservation reservation = instanceGroup1.launch(createLaunchConfiguration(1), TimeUnit.MINUTES, 10);
-        assertTrue(instanceGroup1.isAssociated());
-
-        // connect
-        instanceGroup2.connectTo(TEST_SECURITY_GROUP);
-        assertTrue(instanceGroup2.isAssociated());
-
-        // shutdown
-        instanceGroup2.terminate();
-        Thread.sleep(500);
-        checkInstanceMode(Ec2Util.reloadInstanceDescriptions(ec2, reservation.getInstances()), InstanceStateName.ShuttingDown, InstanceStateName.Terminated);
-        assertFalse(instanceGroup2.isAssociated());
+        Reservation reservation = null;
+        try {
+            // startup
+            reservation = instanceGroup1.launch(createLaunchConfiguration(1), TimeUnit.MINUTES, 10);
+            assertTrue(instanceGroup1.isAssociated());
+            // connect
+            instanceGroup2.connectTo(TEST_SECURITY_GROUP);
+            assertTrue(instanceGroup2.isAssociated());
+        } finally {
+            // shutdown
+            instanceGroup2.terminate();
+            Thread.sleep(500);
+            checkInstanceMode(Ec2Util.reloadInstanceDescriptions(ec2, reservation.getInstances()), InstanceStateName.ShuttingDown, InstanceStateName.Terminated);
+            assertFalse(instanceGroup2.isAssociated());
+        }
     }
 
     @Test
@@ -120,29 +128,33 @@ public class InstanceGroupImplIntegTest extends AbstractEc2IntegrationTest {
         AmazonEC2 ec2 = _ec2Conf.createEc2();
         InstanceGroup instanceGroup = new InstanceGroupImpl(ec2);
 
-        // startup
-        Reservation reservation = instanceGroup.launch(createEbsLaunchConfiguration(1), TimeUnit.MINUTES, 10);
-        // instanceGroup.connectTo(TEST_SECURITY_GROUP);
-        // Reservation reservation = Ec2Util.getReservation(ec2,
-        // Ec2Util.toIds(instanceGroup.getInstances(false)));
-        assertTrue(instanceGroup.isAssociated());
+        Reservation reservation = null;
+        try {
+            // startup
+            reservation = instanceGroup.launch(createEbsLaunchConfiguration(1), TimeUnit.MINUTES, 10);
+            // instanceGroup.connectTo(TEST_SECURITY_GROUP);
+            // Reservation reservation = Ec2Util.getReservation(ec2,
+            // Ec2Util.toIds(instanceGroup.getInstances(false)));
+            assertTrue(instanceGroup.isAssociated());
 
-        Volume volume = findEbsVolume(ec2);
-        ec2.attachVolume(new AttachVolumeRequest(volume.getVolumeId(), reservation.getInstances().get(0).getInstanceId(), "/dev/sdb1"));
+            Volume volume = findEbsVolume(ec2);
+            ec2.attachVolume(new AttachVolumeRequest(volume.getVolumeId(), reservation.getInstances().get(0).getInstanceId(), "/dev/sdb1"));
 
-        // stop/start
-        instanceGroup.stop();
-        assertFalse(instanceGroup.isAssociated());
-        Ec2Util.waitUntil(ec2, reservation.getInstances(), EnumSet.of(InstanceStateName.Stopping), InstanceStateName.Stopped);
+            // stop/start
+            instanceGroup.stop();
+            assertFalse(instanceGroup.isAssociated());
+            Ec2Util.waitUntil(ec2, reservation.getInstances(), EnumSet.of(InstanceStateName.Stopping), InstanceStateName.Stopped);
 
-        instanceGroup.start(Ec2Util.getInstanceIds(reservation), TimeUnit.MINUTES, 10);
-        // instanceGroup.start(Arrays.asList("i-e8526c8a"), TimeUnit.MINUTES, 10);
-        assertTrue(instanceGroup.isAssociated());
+            instanceGroup.start(Ec2Util.getInstanceIds(reservation), TimeUnit.MINUTES, 10);
+            // instanceGroup.start(Arrays.asList("i-e8526c8a"), TimeUnit.MINUTES, 10);
+            assertTrue(instanceGroup.isAssociated());
 
-        // shutdown
-        instanceGroup.terminate();
-        Ec2Util.waitUntil(ec2, reservation.getInstances(), EnumSet.of(InstanceStateName.ShuttingDown), InstanceStateName.Terminated);
-        Thread.sleep(500);
+        } finally {
+            // shutdown
+            instanceGroup.terminate();
+            Ec2Util.waitUntil(ec2, reservation.getInstances(), EnumSet.of(InstanceStateName.ShuttingDown), InstanceStateName.Terminated);
+            Thread.sleep(500);
+        }
     }
 
     private void checkInstanceMode(List<Instance> instances, InstanceStateName... instanceModes) {
@@ -159,4 +171,20 @@ public class InstanceGroupImplIntegTest extends AbstractEc2IntegrationTest {
         }
 
     }
+
+    private void checkCreatedByTag(List<Instance> instances) {
+        String currentUser = System.getProperty("user.name");
+        for (Instance instance : instances) {
+            assertTrue(instance.getTags().size() > 0);
+            Tag createdBy = null;
+            for (Tag tag : instance.getTags()) {
+                if (tag.getKey().equals("CreatedBy")) {
+                    createdBy = tag;
+                }
+            }
+            assertNotNull("Could not find CreatedBy tag", createdBy);
+            assertEquals("CreatedBy tag should be the user who created the instance", currentUser, createdBy.getValue());
+        }
+    }
+
 }
