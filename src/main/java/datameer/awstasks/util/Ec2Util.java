@@ -111,7 +111,15 @@ public class Ec2Util {
         }
         return dns;
     }
-    
+
+    private static List<String> toInstanceIdAndPublicDns(List<Instance> instances) {
+        List<String> instanceIdToDns = new ArrayList<String>(instances.size());
+        for (Instance instance : instances) {
+            instanceIdToDns.add(String.format("'%s':'%s'", instance.getInstanceId(), instance.getPublicDnsName()));
+        }
+        return instanceIdToDns;
+    }
+
     public static List<String> toPrivateDns(List<Instance> instances) {
         List<String> dns = new ArrayList<String>(instances.size());
         for (Instance instance : instances) {
@@ -185,9 +193,11 @@ public class Ec2Util {
         return waitUntil(ec2, instances, allowedPreTargetStates, targetState, TimeUnit.MINUTES, 10);
     }
 
-    public static List<Instance> waitUntil(AmazonEC2 ec2, List<Instance> instances, EnumSet<InstanceStateName> allowedPreTargetStates, InstanceStateName targetState, TimeUnit timeUnit, long waitTime) {
+    public static List<Instance> waitUntil(AmazonEC2 ec2, List<Instance> instances, EnumSet<InstanceStateName> allowedPreTargetStates, InstanceStateName targetState, TimeUnit timeUnit,
+            long waitTime) {
         long end = System.currentTimeMillis() + timeUnit.toMillis(waitTime);
         List<InstanceStateName> undesiredStates = new ArrayList<InstanceStateName>();
+        List<String> instanceIdsWithNoPublicDns = new ArrayList<String>();
         do {
             try {
                 long sleepTime = 10000;
@@ -198,17 +208,26 @@ public class Ec2Util {
             }
             instances = Ec2Util.reloadInstanceDescriptions(ec2, instances);
             undesiredStates.clear();
+            instanceIdsWithNoPublicDns.clear();
             for (Instance instance : instances) {
                 InstanceStateName state = InstanceStateName.fromValue(instance.getState().getName());
                 boolean instanceInTargetState = state.equals(targetState);
                 Preconditions.checkState(instanceInTargetState || allowedPreTargetStates.contains(state), "Unexpected instance state '%s' for instance %s", state, instance.getInstanceId());
                 if (!instanceInTargetState) {
                     undesiredStates.add(state);
+                } else {
+                    // if 'running' desired, then we also need the public DNS
+                    if (targetState.equals(InstanceStateName.Running) && instance.getPublicDnsName().isEmpty()) {
+                        instanceIdsWithNoPublicDns.add(instance.getInstanceId());
+                    }
                 }
             }
-        } while (!undesiredStates.isEmpty() && System.currentTimeMillis() < end);
+        } while (!(undesiredStates.isEmpty() && instanceIdsWithNoPublicDns.isEmpty()) && System.currentTimeMillis() < end);
 
-        Preconditions.checkState(undesiredStates.isEmpty(), "not all instance of group '" + Ec2Util.getSecurityGroups(instances) + "' are in state 'running', some are in: " + undesiredStates);
+        Preconditions.checkState(undesiredStates.isEmpty(),
+                "not all instance of group '" + Ec2Util.getSecurityGroups(instances) + "' are in state '" + targetState + "', some are in: " + undesiredStates);
+        Preconditions.checkState(instanceIdsWithNoPublicDns.isEmpty(),
+                "group '" + Ec2Util.getSecurityGroups(instances) + "' are missing some public dns values '" + String.format("instances -> publicDns : %s", toInstanceIdAndPublicDns(instances)));
         return instances;
     }
 
