@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.tools.ant.BuildException;
 
 import awstasks.com.amazonaws.services.ec2.AmazonEC2;
@@ -33,6 +32,7 @@ import awstasks.com.amazonaws.services.ec2.model.IpPermission;
 import awstasks.com.amazonaws.services.ec2.model.Placement;
 import awstasks.com.amazonaws.services.ec2.model.RunInstancesRequest;
 import awstasks.com.amazonaws.services.ec2.model.Tag;
+import awstasks.org.apache.commons.codec.binary.Base64;
 import datameer.awstasks.aws.ec2.GroupPermission;
 import datameer.awstasks.aws.ec2.InstanceGroup;
 import datameer.awstasks.aws.ec2.InstanceGroupImpl;

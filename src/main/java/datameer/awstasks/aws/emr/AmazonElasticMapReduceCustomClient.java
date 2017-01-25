@@ -27,12 +27,13 @@ import awstasks.com.amazonaws.AmazonServiceException;
 import awstasks.com.amazonaws.auth.BasicAWSCredentials;
 import awstasks.com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduceClient;
 import awstasks.com.amazonaws.services.elasticmapreduce.model.AddJobFlowStepsRequest;
+import awstasks.com.amazonaws.services.elasticmapreduce.model.AddJobFlowStepsResult;
 import awstasks.com.amazonaws.services.elasticmapreduce.model.DescribeJobFlowsRequest;
 import awstasks.com.amazonaws.services.elasticmapreduce.model.DescribeJobFlowsResult;
 import awstasks.com.amazonaws.services.elasticmapreduce.model.RunJobFlowRequest;
 import awstasks.com.amazonaws.services.elasticmapreduce.model.RunJobFlowResult;
 import awstasks.com.amazonaws.services.elasticmapreduce.model.TerminateJobFlowsRequest;
-
+import awstasks.com.amazonaws.services.elasticmapreduce.model.TerminateJobFlowsResult;
 import datameer.awstasks.aws.emr.EmrCluster.InterruptedRuntimeException;
 import datameer.awstasks.util.ExceptionUtil;
 import datameer.com.google.common.collect.Lists;
@@ -76,12 +77,11 @@ public class AmazonElasticMapReduceCustomClient extends AmazonElasticMapReduceCl
     }
 
     @Override
-    public void addJobFlowSteps(final AddJobFlowStepsRequest request) throws AmazonServiceException {
-        doThrottleSafe(new Callable<Void>() {
+    public AddJobFlowStepsResult addJobFlowSteps(final AddJobFlowStepsRequest request) throws AmazonServiceException {
+        return doThrottleSafe(new Callable<AddJobFlowStepsResult>() {
             @Override
-            public Void call() throws Exception {
-                AmazonElasticMapReduceCustomClient.super.addJobFlowSteps(request);
-                return null;
+            public AddJobFlowStepsResult call() throws Exception {
+                return AmazonElasticMapReduceCustomClient.super.addJobFlowSteps(request);
             }
         });
     }
@@ -121,12 +121,11 @@ public class AmazonElasticMapReduceCustomClient extends AmazonElasticMapReduceCl
     }
 
     @Override
-    public void terminateJobFlows(final TerminateJobFlowsRequest request) throws AmazonServiceException {
-        doThrottleSafe(new Callable<Void>() {
+    public TerminateJobFlowsResult terminateJobFlows(final TerminateJobFlowsRequest request) throws AmazonServiceException {
+        return doThrottleSafe(new Callable<TerminateJobFlowsResult>() {
             @Override
-            public Void call() throws Exception {
-                AmazonElasticMapReduceCustomClient.super.terminateJobFlows(request);
-                return null;
+            public TerminateJobFlowsResult call() throws Exception {
+                return AmazonElasticMapReduceCustomClient.super.terminateJobFlows(request);
             }
         });
     }

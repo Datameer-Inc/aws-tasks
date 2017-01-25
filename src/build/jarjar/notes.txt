@@ -1,6 +1,6 @@
 Executing JarJar:
 
-java -jar lib/build/jarjar-1.2.jar process src/build/jarjar/jsch.jjl jsch-<version>.jar lib/compile/awstasks-jsch-<version>.jar
+java -jar lib/build/jarjar/jarjar-1.4.jar process src/build/jarjar/jsch.jjl jsch-<version>.jar lib/compile/awstasks-jsch-<version>.jar
 
 Creating the source jar:
 
