@@ -20,8 +20,6 @@ import awstasks.com.amazonaws.services.ec2.model.Tag;
 import awstasks.com.amazonaws.services.ec2.model.Instance;
 import awstasks.com.amazonaws.services.ec2.model.CreateTagsRequest;
 import datameer.awstasks.aws.ec2.InstanceGroup;
-import java.util.Map;
-import java.util.HashMap;
 
 public class Ec2TagTask extends AbstractEc2ConnectTask {
 
