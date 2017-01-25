@@ -308,7 +308,7 @@
 			</settings>
 			<project name="${ant.project.name}" />
 			<classpath>
-				<container path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6" />
+				<container path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7" />
 
 				<source path="${basedir}/${main.src.dir}" output="${build.dir.main-classes-eclipse}" />
 				<source path="${basedir}/${main.res.dir}" output="${build.dir.main-classes-eclipse}" />
@@ -328,7 +328,9 @@
 			<filelist dir="${root.dir}/src/build/eclipse/" files="eclipse-formatter" />
 		</concat>
 		<copy file="${root.dir}/src/build/eclipse/org.eclipse.jdt.ui.prefs" todir="${root.dir}/.settings" />
-		<replace file="${root.dir}/.settings/org.eclipse.jdt.core.prefs" token="org.eclipse.jdt.core.compiler.compliance=6.0" value="org.eclipse.jdt.core.compiler.compliance=1.6" />
+		<replace file="${root.dir}/.settings/org.eclipse.jdt.core.prefs" token="org.eclipse.jdt.core.compiler.compliance=6.0" value="org.eclipse.jdt.core.compiler.compliance=1.7" />
+		<replace file="${root.dir}/.settings/org.eclipse.jdt.core.prefs" token="org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.6" value="org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.7" />
+		<replace file="${root.dir}/.settings/org.eclipse.jdt.core.prefs" token="org.eclipse.jdt.core.compiler.source=1.6" value="org.eclipse.jdt.core.compiler.source=1.7" />
 		<replaceregexp file=".classpath" match="path=&quot;(.*).jar&quot;" replace="path=&quot;\1.jar&quot; sourcepath=&quot;\1-sources.jar&quot;" flags="g" />
 	</target>
 
