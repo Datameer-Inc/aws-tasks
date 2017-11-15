@@ -50,7 +50,6 @@ public abstract class AbstractEc2Task extends AbstractAwsTask {
 
     private AmazonEC2 createEc2() {
         AmazonEC2Client ec2Client = new AmazonEC2Client(new BasicAWSCredentials(_accessKey, _accessSecret));
-        getRegioAndSuppressWarnings();
         Region region = getRegioAndSuppressWarnings();
         if (_region != null && !_region.trim().isEmpty()) {
             ec2Client.setRegion(region);
