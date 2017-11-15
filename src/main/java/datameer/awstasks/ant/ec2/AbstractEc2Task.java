@@ -15,6 +15,8 @@
  */
 package datameer.awstasks.ant.ec2;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.apache.log4j.NDC;
 import org.apache.tools.ant.BuildException;
 
@@ -48,8 +50,16 @@ public abstract class AbstractEc2Task extends AbstractAwsTask {
 
     private AmazonEC2 createEc2() {
         AmazonEC2Client ec2Client = new AmazonEC2Client(new BasicAWSCredentials(_accessKey, _accessSecret));
+        Level old = Logger.getRootLogger().getLevel();
+        Region region;
+        try {
+            Logger.getRootLogger().setLevel(Level.ERROR);
+            region = Region.getRegion(Regions.valueOf(_region.toUpperCase()));
+        } finally {
+            Logger.getRootLogger().setLevel(old);
+        }
         if (_region != null && !_region.trim().isEmpty()) {
-            ec2Client.setRegion(Region.getRegion(Regions.valueOf(_region.toUpperCase())));
+            ec2Client.setRegion(region);
         }
         LOG.info("connect to region " + _region);
         return ec2Client;
