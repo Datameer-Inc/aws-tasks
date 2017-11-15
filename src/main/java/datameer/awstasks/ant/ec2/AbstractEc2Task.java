@@ -50,6 +50,24 @@ public abstract class AbstractEc2Task extends AbstractAwsTask {
 
     private AmazonEC2 createEc2() {
         AmazonEC2Client ec2Client = new AmazonEC2Client(new BasicAWSCredentials(_accessKey, _accessSecret));
+        getRegioAndSuppressWarnings();
+        Region region = getRegioAndSuppressWarnings();
+        if (_region != null && !_region.trim().isEmpty()) {
+            ec2Client.setRegion(region);
+        }
+        LOG.info("connect to region " + _region);
+        return ec2Client;
+    }
+
+    /**
+     * Utility method to get a region. 
+     * Logger set to ERROR for the command execution
+     * to avoid the intermittent message: 
+     * WARN..."Failed to initialize regional endpoints from cloudfront"
+     * which also prints a large stacktrace polluting the log.
+     * @return region
+     */
+    private Region getRegioAndSuppressWarnings() {
         Level old = Logger.getRootLogger().getLevel();
         Region region;
         try {
@@ -58,11 +76,7 @@ public abstract class AbstractEc2Task extends AbstractAwsTask {
         } finally {
             Logger.getRootLogger().setLevel(old);
         }
-        if (_region != null && !_region.trim().isEmpty()) {
-            ec2Client.setRegion(region);
-        }
-        LOG.info("connect to region " + _region);
-        return ec2Client;
+        return region;
     }
 
     @Override
