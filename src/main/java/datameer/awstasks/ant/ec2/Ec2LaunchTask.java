@@ -209,14 +209,17 @@ public class Ec2LaunchTask extends AbstractEc2Task {
                 if (_instanceName != null) {
                     LOG.info("tagging instances with name '" + _instanceName + " [<idx>]'");
                     int idx = 1;
-                    for (Instance instance : instanceGroup.getInstances(false)) {
+                    List<Instance> instances = instanceGroup.getInstances(false);
+                    for (Instance instance : instances) {
                         CreateTagsRequest createTagsRequest = new CreateTagsRequest();
                         createTagsRequest.withResources(instance.getInstanceId()) //
                                 .withTags(new Tag("Name", _instanceName + " [" + idx + "]"));
                         ec2.createTags(createTagsRequest);
                         idx++;
                     }
+                    Ec2Util.waitForStatusChecks(ec2, instances, TimeUnit.MINUTES, _maxStartTime);
                 }
+                
             }
         } catch (Exception e) {
             LOG.error("execution " + getClass().getSimpleName() + " with groupName '" + _groupName + "' failed: " + e.getMessage());

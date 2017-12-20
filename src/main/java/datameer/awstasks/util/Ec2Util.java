@@ -28,6 +28,8 @@ import org.apache.log4j.Logger;
 
 import awstasks.com.amazonaws.AmazonServiceException;
 import awstasks.com.amazonaws.services.ec2.AmazonEC2;
+import awstasks.com.amazonaws.services.ec2.model.DescribeInstanceStatusRequest;
+import awstasks.com.amazonaws.services.ec2.model.DescribeInstanceStatusResult;
 import awstasks.com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import awstasks.com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
 import awstasks.com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
@@ -35,6 +37,8 @@ import awstasks.com.amazonaws.services.ec2.model.Filter;
 import awstasks.com.amazonaws.services.ec2.model.GroupIdentifier;
 import awstasks.com.amazonaws.services.ec2.model.Instance;
 import awstasks.com.amazonaws.services.ec2.model.InstanceStateName;
+import awstasks.com.amazonaws.services.ec2.model.InstanceStatus;
+import awstasks.com.amazonaws.services.ec2.model.InstanceStatusSummary;
 import awstasks.com.amazonaws.services.ec2.model.IpPermission;
 import awstasks.com.amazonaws.services.ec2.model.Reservation;
 import awstasks.com.amazonaws.services.ec2.model.SecurityGroup;
@@ -222,12 +226,47 @@ public class Ec2Util {
                     }
                 }
             }
-        } while (!(undesiredStates.isEmpty() && instanceIdsWithNoPublicDns.isEmpty()) && System.currentTimeMillis() < end);
+        } while (!(undesiredStates.isEmpty() && instanceIdsWithNoPublicDns.isEmpty()) 
+                && System.currentTimeMillis() < end);
 
         Preconditions.checkState(undesiredStates.isEmpty(),
                 "not all instance of group '" + Ec2Util.getSecurityGroups(instances) + "' are in state '" + targetState + "', some are in: " + undesiredStates);
         Preconditions.checkState(instanceIdsWithNoPublicDns.isEmpty(),
                 "group '" + Ec2Util.getSecurityGroups(instances) + "' are missing some public dns values '" + String.format("instances -> publicDns : %s", toInstanceIdAndPublicDns(instances)));
+        return instances;
+    }
+
+    public static List<Instance> waitForStatusChecks(AmazonEC2 ec2, List<Instance> instances, TimeUnit timeUnit, long waitTime) {
+        long end = System.currentTimeMillis() + timeUnit.toMillis(waitTime);
+        List<String> instanceIdsWaitingForStatusChecks = new ArrayList<String>();
+        do {
+            try {
+                long sleepTime = 10000;
+                LOG.info(String.format("wait on instances %s to pass status checks. Sleeping %d ms. zzz...", instances, sleepTime));
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            instances = Ec2Util.reloadInstanceDescriptions(ec2, instances);
+            instanceIdsWaitingForStatusChecks.clear();
+            for (Instance instance : instances) {
+                // wait until system and instance checks are ok
+                DescribeInstanceStatusRequest describeInstanceRequest = new DescribeInstanceStatusRequest().withInstanceIds(instance.getInstanceId());
+                DescribeInstanceStatusResult describeInstanceResult = ec2.describeInstanceStatus(describeInstanceRequest);
+                List<InstanceStatus> states = describeInstanceResult.getInstanceStatuses();
+                for (InstanceStatus instanceStatus : states) {
+                    InstanceStatusSummary sss =  instanceStatus.getSystemStatus();
+                    InstanceStatusSummary iss =  instanceStatus.getInstanceStatus();
+                    LOG.info("System  : '" + instance.getInstanceId() + "': " + sss);
+                    LOG.info("Instance: '" + instance.getInstanceId() + "': " + iss);
+                    if(!sss.getStatus().equals("ok") || !iss.getStatus().equals("ok")) {
+                        instanceIdsWaitingForStatusChecks.add(instance.getInstanceId());
+                    }
+                }
+            }
+        } while (!instanceIdsWaitingForStatusChecks.isEmpty() && System.currentTimeMillis() < end);
+        Preconditions.checkState(instanceIdsWaitingForStatusChecks.isEmpty(),
+                "group '" + Ec2Util.getSecurityGroups(instances) + "' are missing some status checks '" + String.format("instances: %s", toIds(instances)));
         return instances;
     }
 

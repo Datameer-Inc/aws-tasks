@@ -89,7 +89,7 @@ public class InstanceGroupImpl implements InstanceGroup {
     @Override
     public Reservation launch(RunInstancesRequest launchConfiguration, TimeUnit timeUnit, long time) {
         checkEc2Association(false);
-        LOG.info(String.format("launching %d to %d instances with %s in groups %s...", launchConfiguration.getMinCount(), launchConfiguration.getMaxCount(), launchConfiguration.getImageId(),
+        LOG.info(String.format("Now launching %d to %d instances with %s in groups %s...", launchConfiguration.getMinCount(), launchConfiguration.getMaxCount(), launchConfiguration.getImageId(),
                 launchConfiguration.getSecurityGroups()));
         Reservation reservation = _ec2.runInstances(launchConfiguration).getReservation();
         _instances = reservation.getInstances();
