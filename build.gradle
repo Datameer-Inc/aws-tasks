@@ -6,24 +6,112 @@
  * user guide available at https://docs.gradle.org/4.4/userguide/java_library_plugin.html
  */
 
-// Apply the java-library plugin to add support for Java Library
 apply plugin: 'java-library'
+//apply plugin: 'java-lang'
+//apply plugin: 'jvm-component'
+apply plugin: 'org.anarres.jarjar'
+
+version = '0.12.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 // In this section you declare where to find the dependencies of your project
 repositories {
-    // Use jcenter for resolving your dependencies.
-    // You can declare any Maven/Ivy/file repository here.
-    jcenter()
+  maven {
+    url '../../../maven-repository/releases'
+  }
+  mavenCentral()
+  jcenter()
 }
 
 dependencies {
-    // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api 'org.apache.commons:commons-math3:3.6.1'
+/*
+WHY: the aws-java-sdk from amazon contains a text file inside pointing to a class.
+     On jarjar the entry in this file needs to be renamed too. This is currently
+     not possible with the jarjar plugin. So we use it for creation only and do the
+     renaming in the text file manually and upload the result to our github maven
+     repository. We let the jarjar code here for a easier later updating. So please
+     keep this comment.
+        compile jarjar.repackage("awstasks-aws-java-sdk-1.11.83.jar") {
+            from 'com.amazonaws:aws-java-sdk-core:1.11.83'
+            from 'com.amazonaws:aws-java-sdk-ec2:1.11.83'
+            from 'com.amazonaws:aws-java-sdk-s3:1.11.83'
+            from 'com.amazonaws:aws-java-sdk-emr:1.11.83'
+            from 'com.amazonaws:aws-java-sdk-simpledb:1.11.83'
+            from 'com.amazonaws:aws-java-sdk-sns:1.11.83'
+            classRename "com.amazonaws.**", "awstasks.com.amazonaws.@1"
+            classRename "com.fasterxml.jackson.**", "awstasks.com.fasterxml.jackson.@1"
+            classRename "org.apache.commons.codec.**", "awstasks.org.apache.commons.codec.@1"
+            classRename "org.apache.commons.logging.**", "awstasks.org.apache.commons.logging@1"
+            classRename "org.apache.http.**", "awstasks.org.apache.http.@1"
+            classRename "org.joda.time.**", "awstasks.org.joda.time.@1"
+            classRename "software.amazon.ion.**", "awstasks.software.amazon.ion.@1"
+            
+            // there is a change to the handlers text file necessary request.handlers
+        }
+        compile jarjar.repackage("awstasks-aws-java-sdk-1.11.83-sources.jar") {
+            from 'com.amazonaws:aws-java-sdk-core:1.11.83:sources'
+            from 'com.amazonaws:aws-java-sdk-ec2:1.11.83:sources'
+            from 'com.amazonaws:aws-java-sdk-s3:1.11.83:sources'
+            from 'com.amazonaws:aws-java-sdk-emr:1.11.83:sources'
+            from 'com.amazonaws:aws-java-sdk-simpledb:1.11.83:sources'
+            from 'com.amazonaws:aws-java-sdk-sns:1.11.83:sources'
+            classRename "com.amazonaws.**", "awstasks.com.amazonaws.@1"
+            classRename "com.fasterxml.jackson.**", "awstasks.com.fasterxml.jackson.@1"
+            classRename "org.apache.commons.codec.**", "awstasks.org.apache.commons.codec.@1"
+            classRename "org.apache.commons.logging.**", "awstasks.org.apache.commons.logging@1"
+            classRename "org.apache.http.**", "awstasks.org.apache.http.@1"
+            classRename "org.joda.time.**", "awstasks.org.joda.time.@1"
+            classRename "software.amazon.ion.**", "awstasks.software.amazon.ion.@1"
+            // there is a change to the handlers text file necessary request.handlers
+        }
+*/
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
-    implementation 'com.google.guava:guava:23.0'
+    implementation jarjar.repackage("datameer-awstasks-jsch-0.1.53.jar") {
+      from 'com.jcraft:jsch:0.1.53', { transitive = false }
+      classRename "com.jcraft.jsch.**", "awstasks.com.jcraft.jsch.@1"
+    }
+    implementation jarjar.repackage("datameer-awstasks-jsch-0.1.53-sources.jar") {
+      from 'com.jcraft:jsch:0.1.53:sources', { transitive = false }
+      classRename "com.jcraft.jsch.**", "awstasks.com.jcraft.jsch.@1"
+    }
+    implementation 'datameer.com.google.common:datameer-guava:19.0'
+    implementation 'com.google.guava:guava:24.0-jre'
+    implementation 'awstasks.com.amazonaws:aws-java-sdk:1.11.83'
+    implementation 'org.apache.ant:ant:1.10.2'
+    implementation 'org.apache.ant:ant-junit:1.10.2'
+    implementation 'log4j:log4j:1.2.17'
+    implementation 'junit:junit:4.12'
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
+    testImplementation 'org.easytesting:fest-assert:1.4'
+    testImplementation 'org.mockito:mockito-core:1.8.1'
+    testImplementation 'org.hamcrest:hamcrest-library:1.3'
 }
+
+jar {
+  manifest {
+    attributes('Implementation-Title': project.name,
+               'Implementation-Version': project.version,
+               'Implementation-Vendor': 'Datameer Inc',
+               'Compile-Time': '${timestamp}',
+               'Compiled-By': '${user.name}',
+               'Git-Revision': '${build.current.revision}')
+  }
+}
+/*
+model {
+  components {
+    main(JvmLibrarySpec) {
+      api {
+        exports 'datameer.awstasks.ssh'
+      }
+      targetPlatform 'java8'
+    }
+  }
+}
+*/
 

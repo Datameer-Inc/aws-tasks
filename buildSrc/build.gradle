@@ -1,0 +1,21 @@
+apply plugin: 'groovy'
+
+repositories {
+  maven {
+    url '../../../../maven-repository/releases'
+  }
+  mavenCentral()
+  jcenter()
+}
+
+dependencies {
+  compile 'org.ow2.asm:asm-commons:5.0.3'
+  compile 'org.ow2.asm:asm-util:5.0.3'
+  compile 'org.apache.commons:commons-compress:1.9'
+  compile 'oro:oro:2.0.8'
+  compile "org.anarres.jarjar:jarjar-core:1.1.1"
+  compile "org.anarres.jarjar:jarjar-gradle:1.1.1"
+
+  compile 'com.netflix.nebula:gradle-lint-plugin:8.3.1'
+}
+
