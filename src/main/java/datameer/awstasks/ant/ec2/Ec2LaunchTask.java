@@ -176,6 +176,7 @@ public class Ec2LaunchTask extends AbstractEc2Task {
             List<String> securityGroups = Arrays.asList("default", _groupName);
             List<IpPermission> existingPermissions = Ec2Util.getPermissions(ec2, securityGroups);
             for (GroupPermission groupPermission : _groupPermissions) {
+                LOG.info("Checking for permission '" + groupPermission + "'...");
                 if (groupPermission.getToPort() == -1) {
                     groupPermission.setToPort(groupPermission.getFromPort());
                 }

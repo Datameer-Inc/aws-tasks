@@ -2,7 +2,7 @@ apply plugin: 'groovy'
 
 repositories {
   maven {
-    url '../../../../maven-repository/releases'
+    url "${project.rootDir}/../${project.findProperty('mavenRepoRelativeToProjectRoot') ?: '../../../maven-repository/releases'}"
   }
   mavenCentral()
   jcenter()
