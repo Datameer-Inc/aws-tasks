@@ -10,6 +10,7 @@ apply plugin: 'java-library'
 //apply plugin: 'java-lang'
 //apply plugin: 'jvm-component'
 apply plugin: 'org.anarres.jarjar'
+apply plugin: 'eclipse'
 
 version = '0.12.0'
 
@@ -19,7 +20,7 @@ targetCompatibility = 1.8
 // In this section you declare where to find the dependencies of your project
 repositories {
   maven {
-    url '../../../maven-repository/releases'
+    url "${project.rootDir}/${project.findProperty('mavenRepoRelativeToProjectRoot') ?: '../../../maven-repository/releases'}"
   }
   mavenCentral()
   jcenter()

@@ -15,9 +15,19 @@
  */
 package datameer.awstasks.ant.ec2;
 
-import awstasks.com.amazonaws.services.ec2.AmazonEC2;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import awstasks.com.amazonaws.services.ec2.AmazonEC2;
+import awstasks.com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest;
+import awstasks.com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import awstasks.com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import awstasks.com.amazonaws.services.ec2.model.Instance;
+import awstasks.com.amazonaws.services.ec2.model.InstanceStateName;
 import datameer.awstasks.aws.ec2.InstanceGroup;
+import datameer.awstasks.util.Ec2Util;
 
 public class Ec2ShutdownTask extends AbstractEc2ConnectTask {
 
@@ -37,7 +47,19 @@ public class Ec2ShutdownTask extends AbstractEc2ConnectTask {
         if (_stopOnly) {
             instanceGroup.stop();
         } else {
+            Set<String> instanceIds = new HashSet<String>();
+            for (Instance instance : instanceGroup.getInstances(false)) {
+                instanceIds.add(instance.getInstanceId());
+            }
             instanceGroup.terminate();
+            if (Ec2Util.groupExists(ec2, _groupName)) {
+                LOG.info("group '" + _groupName + "' exists - deleting it.");
+                DescribeInstancesResult describeInstancesResult = ec2
+                        .describeInstances(new DescribeInstancesRequest().withInstanceIds(instanceIds));
+                Ec2Util.waitUntil(ec2, describeInstancesResult.getReservations().get(0).getInstances(), EnumSet.allOf(InstanceStateName.class), InstanceStateName.Terminated, TimeUnit.MINUTES, 2);
+                LOG.info("Instances terminated. Deleting security group: '" + _groupName + "'.");
+                ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(_groupName));
+            }
         }
     }
 }
