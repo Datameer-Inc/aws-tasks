@@ -4,6 +4,18 @@ repositories {
   maven {
     url "${project.rootDir}/../${project.findProperty('mavenRepoRelativeToProjectRoot') ?: '../../../maven-repository/releases'}"
   }
+
+  maven {
+    credentials {
+      username 'public-readonly'
+      password 'l9my29R4sL3-BFaE'
+    }
+    authentication {
+      basic(BasicAuthentication)
+    }
+    url 'https://nexus.datameer.com/repository/maven-datameer-inc-github'
+  }
+
   mavenCentral()
   jcenter()
 }
